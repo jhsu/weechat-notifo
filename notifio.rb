@@ -1,5 +1,22 @@
-#!/usr/bin/env ruby
-
+# Author: Joseph "jshsu" Hsu <jhsu@josephhsu.com>
+# File: notifio.rb
+#
+# Send highlighted messages to Notifio
+#
+#   Copyright (C) 2010 Joseph Hsu
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 begin
 require 'httparty'
 rescue
@@ -9,7 +26,7 @@ require 'uri'
 
 SCRIPT_NAME = 'notifio'
 SCRIPT_AUTHOR = 'Joseph Hsu <jhsu@josephhsu.com>'
-SCRIPT_DESC = 'Create a query buffer next to current buffer'
+SCRIPT_DESC = 'Send highlighted messages to Notifio'
 SCRIPT_VERSION = '0.1'
 SCRIPT_LICENSE = 'GPL3'
 

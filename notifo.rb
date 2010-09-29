@@ -1,7 +1,7 @@
 # Author: Joseph "jshsu" Hsu <jhsu@josephhsu.com>
-# File: notifio.rb
+# File: notifo.rb
 #
-# Send highlighted messages to Notifio
+# Send highlighted messages to Notifo
 #
 #   Copyright (C) 2010 Joseph Hsu
 #
@@ -20,17 +20,17 @@
 begin
 require 'httparty'
 rescue
-  Weechat.print Weechat.current_buffer, "weechat-notifio requires 'gem install httparty'"
+  Weechat.print Weechat.current_buffer, "weechat-notifo requires 'gem install httparty'"
 end
 require 'uri'
 
-SCRIPT_NAME = 'notifio'
+SCRIPT_NAME = 'notifo'
 SCRIPT_AUTHOR = 'Joseph Hsu <jhsu@josephhsu.com>'
-SCRIPT_DESC = 'Send highlighted messages to Notifio'
+SCRIPT_DESC = 'Send highlighted messages to Notifo'
 SCRIPT_VERSION = '0.1'
 SCRIPT_LICENSE = 'GPL3'
 
-class Notifio
+class Notifo
   include HTTParty
   base_uri "https://api.notifo.com/v1"
 
@@ -75,7 +75,7 @@ class Notifio
       response = self.class.post("/send_notification", {:body => params})
     else
       Weechat.print Weechat.current_buffer, 
-        "<i> need to set 'plugins.var.ruby.notifio.api_key' and 'plugins.var.ruby.notifio.user'"
+        "<i> need to set 'plugins.var.ruby.notifo.api_key' and 'plugins.var.ruby.notifo.user'"
     end
   end
 end
@@ -84,7 +84,7 @@ def weechat_init
   Weechat.register(SCRIPT_NAME, SCRIPT_AUTHOR, SCRIPT_VERSION,
                    SCRIPT_LICENSE, SCRIPT_DESC, "", "")
   Weechat.hook_signal("weechat_highlight", "send_message", "")
-  @notifio = Notifio.new
+  @notifo = Notifo.new
 
   return Weechat::WEECHAT_RC_OK
 end
@@ -94,6 +94,6 @@ def send_message(data, signal, msg)
   msg = msg.split
   from = msg.shift
   msg = msg.join(' ')
-  @notifio.send_notification(msg, "weechat", from)
+  @notifo.send_notification(msg, "weechat", from)
   return Weechat::WEECHAT_RC_OK
 end

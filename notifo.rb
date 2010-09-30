@@ -41,6 +41,16 @@ class Notifo
     recheck_api_key
   end
 
+  def silence?
+    set_value = Weechat.config_get_plugin("silence")
+    if set_value && !set_value.empty?
+      set_value == "on" ? true : false
+    else
+      Weechat.config_set_plugin("silence", "off")
+      false
+    end
+  end
+
   def recheck_user
     set_value = Weechat.config_get_plugin("user")
     @user = if set_value && !set_value.empty?
@@ -64,18 +74,20 @@ class Notifo
   def send_notification(msg, label=nil, title=nil, uri=nil)
     recheck_user
     recheck_api_key
-    params = { :to => @user, :msg => msg,
-      :label => label, :title => title, :uri => uri}
-    params.each do |param, value|
-      params[param] = URI.escape(value, Regexp.new("[^#{URI::PATTERN::UNRESERVED}]")) if value
-    end
+    unless silence?
+      params = { :to => @user, :msg => msg,
+        :label => label, :title => title, :uri => uri}
+      params.each do |param, value|
+        params[param] = URI.escape(value, Regexp.new("[^#{URI::PATTERN::UNRESERVED}]")) if value
+      end
 
-    if @user && @api_key
-      self.class.basic_auth @user, @api_key
-      response = self.class.post("/send_notification", {:body => params})
-    else
-      Weechat.print Weechat.current_buffer, 
-        "<i> need to set 'plugins.var.ruby.notifo.api_key' and 'plugins.var.ruby.notifo.user'"
+      if @user && @api_key
+        self.class.basic_auth @user, @api_key
+        response = self.class.post("/send_notification", {:body => params})
+      else
+        Weechat.print Weechat.current_buffer,
+          "<i> need to set 'plugins.var.ruby.notifo.api_key' and 'plugins.var.ruby.notifo.user'"
+      end
     end
   end
 end
@@ -90,7 +102,6 @@ def weechat_init
 end
 
 def send_message(data, signal, msg)
-
   msg = msg.split
   from = msg.shift
   msg = msg.join(' ')

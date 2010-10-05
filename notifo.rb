@@ -110,6 +110,7 @@ def weechat_init
   Weechat.register(SCRIPT_NAME, SCRIPT_AUTHOR, SCRIPT_VERSION,
                    SCRIPT_LICENSE, SCRIPT_DESC, "", "")
   Weechat.hook_signal("weechat_highlight", "send_message", "")
+  Weechat.hook_signal("weechat_pv", "send_message", "")
   @notifo = Notifo.new(Weechat.config_get_plugin("user"), Weechat.config_get_plugin("api_key"))
 
   return Weechat::WEECHAT_RC_OK

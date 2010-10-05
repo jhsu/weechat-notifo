@@ -18,7 +18,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 begin
-require 'httparty'
+  require 'httparty'
 rescue
   Weechat.print Weechat.current_buffer, "weechat-notifo requires 'gem install httparty'"
 end
@@ -36,39 +36,56 @@ class Notifo
 
   attr_accessor :api_key, :label, :msg, :title, :to, :uri, :user
 
-  def initialize
-    recheck_user
-    recheck_api_key
+  def initialize(user=nil, api_key=nil)
+    if user && api_key
+      @user = user
+      @api_key = api_key
+    else
+      recheck_user
+      recheck_api_key
+    end
   end
 
   def silence?
-    set_value = Weechat.config_get_plugin("silence")
-    if set_value && !set_value.empty?
-      set_value == "on" ? true : false
-    else
-      Weechat.config_set_plugin("silence", "off")
+    begin
+      set_value = Weechat.config_get_plugin("silence")
+      if set_value && !set_value.empty?
+        set_value == "on" ? true : false
+      else
+        Weechat.config_set_plugin("silence", "off")
+        false
+      end
+    rescue
       false
     end
   end
 
   def recheck_user
-    set_value = Weechat.config_get_plugin("user")
-    @user = if set_value && !set_value.empty?
-        set_value
-      else
-        Weechat.config_set_plugin("user", "")
-        nil
-      end
+    begin
+      set_value = Weechat.config_get_plugin("user")
+      @user = if set_value && !set_value.empty?
+                set_value
+              else
+                Weechat.config_set_plugin("user", "")
+                nil
+              end
+    rescue
+      @user
+    end
   end
 
   def recheck_api_key
-    set_value = Weechat.config_get_plugin("api_key")
-    @api_key = if set_value && !set_value.empty?
-        set_value
-      else
-        Weechat.config_set_plugin("api_key", "")
-        nil
-      end
+    begin
+      set_value = Weechat.config_get_plugin("api_key")
+      @api_key = if set_value && !set_value.empty?
+                   set_value
+                 else
+                   Weechat.config_set_plugin("api_key", "")
+                   nil
+                 end
+    rescue
+      @api_key
+    end
   end
 
   def send_notification(msg, label=nil, title=nil, uri=nil)
@@ -84,9 +101,6 @@ class Notifo
       if @user && @api_key
         self.class.basic_auth @user, @api_key
         response = self.class.post("/send_notification", {:body => params})
-      else
-        Weechat.print Weechat.current_buffer,
-          "<i> need to set 'plugins.var.ruby.notifo.api_key' and 'plugins.var.ruby.notifo.user'"
       end
     end
   end
@@ -96,7 +110,7 @@ def weechat_init
   Weechat.register(SCRIPT_NAME, SCRIPT_AUTHOR, SCRIPT_VERSION,
                    SCRIPT_LICENSE, SCRIPT_DESC, "", "")
   Weechat.hook_signal("weechat_highlight", "send_message", "")
-  @notifo = Notifo.new
+  @notifo = Notifo.new(Weechat.config_get_plugin("user"), Weechat.config_get_plugin("api_key"))
 
   return Weechat::WEECHAT_RC_OK
 end
@@ -105,6 +119,17 @@ def send_message(data, signal, msg)
   msg = msg.split
   from = msg.shift
   msg = msg.join(' ')
-  @notifo.send_notification(msg, "weechat", from)
+  script_path = File.join( Weechat.info_get("weechat_dir",""), "ruby/notifo/notifo.rb")
+  cmd = <<-COMMAND
+  ruby #{script_path} '#{@notifo.user}' '#{@notifo.api_key}' '#{from}' '#{msg}'
+  COMMAND
+  Weechat.hook_process(cmd, 10 * 1000, "finish_notification", "")
   return Weechat::WEECHAT_RC_OK
 end
+
+def finish_notification(data, command, rc, *args)
+  return Weechat::WEECHAT_RC_OK
+end
+
+# send notification
+Notifo.new(ARGV[0], ARGV[1]).send_notification(ARGV[2], "weechat", ARGV[3]) if ARGV.length == 4

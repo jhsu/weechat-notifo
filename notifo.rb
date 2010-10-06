@@ -133,4 +133,4 @@ def finish_notification(data, command, rc, *args)
 end
 
 # send notification
-Notifo.new(ARGV[0], ARGV[1]).send_notification(ARGV[2], "weechat", ARGV[3]) if ARGV.length == 4
+Notifo.new(ARGV[0], ARGV[1]).send_notification(ARGV[3], "weechat", ARGV[2]) if ARGV.length == 4
